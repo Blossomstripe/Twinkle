@@ -16,13 +16,14 @@ jobs:
 
       - name: Pull from upstream
         run: |
-          git checkout upstream
+          git remote add upstream https://git.qiuwen.wiki/InterfaceAdmin/Twinkle.git
+          git checkout qiuwen
           git pull upstream master
-          git push origin upstream
+          git push origin qiuwen
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
         with:
           base: master
-          branch: upstream
+          branch: qiuwen
           title: Automated changes sync from Qiuwen upstream
