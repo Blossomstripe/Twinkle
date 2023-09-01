@@ -1,0 +1,49 @@
+name: MediaWiki CD
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ['mediawiki-ci']
+    branches: ['master']
+    types: ['completed']
+
+# Cancel previous runs
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    env:
+      MW_BOT_PASSWORD: ${{ secrets.MW_BOT_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: 'pnpm'
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          cache: 'pip'
+
+      - name: Compile source
+        run: |
+          npm install -g typescript
+          pnpm install
+          tsc --target 'es5'
+
+      - name: Deploy codes
+        run: |
+          pip install -r scripts/requirements.txt
+          python scripts/deploy.py

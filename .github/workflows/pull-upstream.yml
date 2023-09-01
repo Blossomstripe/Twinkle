@@ -1,0 +1,28 @@
+name: Merge Commits from Upstream
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 */5 * *'
+
+jobs:
+  merge_commits:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Pull from upstream
+        run: |
+          git checkout upstream
+          git pull
+          git push origin upstream
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          base: master
+          branch: upstream
+          title: Automated changes sync from Qiuwen upstream
